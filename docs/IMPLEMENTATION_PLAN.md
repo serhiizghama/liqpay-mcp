@@ -137,6 +137,7 @@ https://www.liqpay.ua/api/3/checkout?data={data}&signature={signature}
 
 Fetch the current status of a payment by order ID (action: `status`).
 Use when checking whether a payment succeeded, failed, or is still pending.
+Do not use to list multiple payments — use `liqpay_get_payments_list` instead.
 Returns full payment details including status, amounts, and timestamps.
 
 | Parameter | Type | Required | Description |
@@ -213,7 +214,7 @@ Returns hold status and payment ID.
 |-----------|------|----------|-------------|
 | `amount` | number | ✓ | Amount to hold |
 | `currency` | string | ✓ | `UAH`, `USD`, `EUR` |
-| `description` | string | ✓ | Description for the payer |
+| `description` | string | ✓ | Payment description shown to payer (max 500 chars, e.g. `'Order #42 — iPhone case'`) |
 | `order_id` | string | ✓ | Unique order ID |
 | `card` | string | ✓ | Payer's card number (16 digits) |
 | `card_exp_month` | string | ✓ | Expiry month `MM` |
@@ -240,6 +241,7 @@ Returns hold status and payment ID.
 
 Capture previously held funds — completes the 2-step payment (action: `hold_completion`).
 Use after `liqpay_create_hold` to actually charge the frozen amount.
+Do not use if the hold has already been cancelled — it will return an error.
 Returns capture status and payment ID.
 
 | Parameter | Type | Required | Description |
@@ -265,6 +267,7 @@ Returns capture status and payment ID.
 
 Release held funds back to payer without capture (action: `hold_completion` with flag).
 Use to cancel a previously created hold when the order is no longer needed.
+Do not use if funds have already been captured via `liqpay_complete_hold`.
 Returns reversal status.
 
 | Parameter | Type | Required | Description |
@@ -293,6 +296,7 @@ Returns reversal status.
 
 Refund a completed payment — full or partial (action: `refund`).
 Use when a customer requests a return or when a charge was made in error.
+Do not use on holds — cancel the hold with `liqpay_cancel_hold` instead.
 Returns refund status and the payment ID.
 
 | Parameter | Type | Required | Description |
@@ -323,13 +327,14 @@ Returns refund status and the payment ID.
 
 Create a recurring payment subscription via hosted checkout page (action: `subscribe`).
 Use when setting up periodic charges (daily, weekly, monthly, yearly).
+Do not use for one-time payments — use `liqpay_create_checkout_url` instead.
 Returns a checkout URL for the subscriber to enter card details.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `amount` | number | ✓ | Amount per billing cycle |
 | `currency` | string | ✓ | `UAH`, `USD`, `EUR` |
-| `description` | string | ✓ | Subscription description |
+| `description` | string | ✓ | Subscription description (max 500 chars, e.g. `'Monthly Pro plan'`) |
 | `order_id` | string | ✓ | Unique subscription ID |
 | `subscribe_date_start` | string | ✓ | First charge date `YYYY-MM-DD HH:mm:ss` |
 | `subscribe_periodicity` | string | ✓ | `day`, `week`, `month`, `year` |
@@ -353,6 +358,7 @@ Returns a checkout URL for the subscriber to enter card details.
 
 Cancel an active recurring subscription (action: `unsubscribe`).
 Use when a subscriber wants to stop recurring charges.
+Do not use if the subscription is already inactive — check status first with `liqpay_get_payment_status`.
 Returns cancellation status.
 
 | Parameter | Type | Required | Description |
@@ -387,7 +393,7 @@ Returns payout status and payment ID.
 |-----------|------|----------|-------------|
 | `amount` | number | ✓ | Payout amount |
 | `currency` | string | ✓ | `UAH`, `USD`, `EUR` |
-| `description` | string | ✓ | Purpose of payout |
+| `description` | string | ✓ | Purpose of payout (e.g. `'Salary payout — May 2026'`) |
 | `order_id` | string | ✓ | Unique payout ID |
 | `card` | string | ✓ | Recipient card number (16 digits) |
 
@@ -444,7 +450,7 @@ Returns validation result and decoded payment data.
 ### Phase 1 — Foundation (day 1)
 
 - [ ] `package.json` — scoped or unscoped `liqpay-mcp-server`, version `1.0.0`, ESM (`"type": "module"`), `prepublishOnly: "npm run build"`, `bin` entry for npx
-- [ ] `tsconfig.json` — `target: "ES2022"`, `module: "Node16"`, `moduleResolution: "Node16"`, `strict: true`, `noUncheckedIndexedAccess: true`
+- [ ] `tsconfig.json` — `target: "ES2022"`, `module: "NodeNext"`, `moduleResolution: "NodeNext"`, `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitReturns: true`
 - [ ] `src/constants.ts` — API URLs, `CHARACTER_LIMIT = 25000`, currency enum, status enum
 - [ ] `src/types.ts` — TypeScript interfaces for LiqPay payloads and responses
 - [ ] `src/auth.ts` — SHA-1 signature using Node.js built-in `crypto.createHash('sha1')`
@@ -597,10 +603,12 @@ Every parameter must have `.describe()` with a format example:
 amount: z.number().positive().describe("Payment amount in currency units (e.g. 99.99 for ₴99.99)")
 order_id: z.string().min(1).describe("Unique order ID in your system (e.g. 'order-2026-001')")
 currency: z.enum(["UAH", "USD", "EUR"]).describe("ISO 4217 currency code")
+description: z.string().min(1).max(500).describe("Payment description shown to payer (max 500 chars, e.g. 'Order #42 — iPhone case')")
 
 // ❌ Bad
 amount: z.number()
 order_id: z.string()
+description: z.string().describe("Description for the payer")
 ```
 
 ### MCP SDK Rules
@@ -678,6 +686,8 @@ export function decodeData(data: string): Record<string, unknown> {
     "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
+  "license": "MIT",
+  "files": ["dist"],
   "engines": {
     "node": ">=18"
   },
