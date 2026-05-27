@@ -3,6 +3,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { LiqPayClient } from "./client.js";
+import { registerPaymentTools } from "./tools/payments.js";
+import { registerReportTools } from "./tools/reports.js";
+import { registerRefundTools } from "./tools/refunds.js";
+import { registerWebhookTools } from "./tools/webhooks.js";
 
 const publicKey = process.env["LIQPAY_PUBLIC_KEY"];
 const privateKey = process.env["LIQPAY_PRIVATE_KEY"];
@@ -34,9 +38,10 @@ const server = new McpServer(
   },
 );
 
-// Tool registration will be added in Phase 2 & 3.
-// Each tool file in src/tools/ exports a register function that takes (server, client).
-void client;
+registerPaymentTools(server, client);
+registerReportTools(server, client);
+registerRefundTools(server, client);
+registerWebhookTools(server, privateKey);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
