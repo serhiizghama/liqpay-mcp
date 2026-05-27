@@ -14,7 +14,28 @@
     "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "liqpay",
+    "payment",
+    "ukraine",
+    "privatbank",
+    "ai",
+    "llm",
+    "agent",
+    "payments-gateway",
+    "fintech"
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/serhiizghama/liqpay-mcp"
+  },
+  "homepage": "https://github.com/serhiizghama/liqpay-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/serhiizghama/liqpay-mcp/issues"
+  },
   "files": [
     "dist"
   ],
