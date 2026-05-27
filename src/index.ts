@@ -7,6 +7,9 @@ import { registerPaymentTools } from "./tools/payments.js";
 import { registerReportTools } from "./tools/reports.js";
 import { registerRefundTools } from "./tools/refunds.js";
 import { registerWebhookTools } from "./tools/webhooks.js";
+import { registerHoldTools } from "./tools/holds.js";
+import { registerSubscriptionTools } from "./tools/subscriptions.js";
+import { registerPayoutTools } from "./tools/payouts.js";
 
 const publicKey = process.env["LIQPAY_PUBLIC_KEY"];
 const privateKey = process.env["LIQPAY_PRIVATE_KEY"];
@@ -42,6 +45,9 @@ registerPaymentTools(server, client);
 registerReportTools(server, client);
 registerRefundTools(server, client);
 registerWebhookTools(server, privateKey);
+registerHoldTools(server, client);
+registerSubscriptionTools(server, client);
+registerPayoutTools(server, client);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
