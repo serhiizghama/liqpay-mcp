@@ -501,17 +501,22 @@ Returns validation result and decoded payment data.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-const server = new McpServer({
-  name: "liqpay-mcp-server",
-  version: "1.0.0",
-  instructions: `LiqPay payment gateway integration for Ukrainian e-commerce.
-Supports payments, holds, refunds, subscriptions, payouts, and webhook verification.
-Requires LIQPAY_PUBLIC_KEY and LIQPAY_PRIVATE_KEY environment variables.
-All monetary amounts are in currency minor units (e.g. 99.99 for ₴99.99).
-Use liqpay_create_checkout_url for PCI-safe payments via hosted page.
-Use liqpay_get_payment_status to check payment results.
-Use liqpay_verify_callback to validate incoming webhooks.`
-});
+const server = new McpServer(
+  {
+    name: "liqpay-mcp-server",
+    version: "1.0.0",
+  },
+  {
+    // instructions is a ServerOptions field, not serverInfo
+    instructions: `LiqPay payment gateway integration for Ukrainian e-commerce. ` +
+      `Supports payments, holds, refunds, subscriptions, payouts, and webhook verification. ` +
+      `Requires LIQPAY_PUBLIC_KEY and LIQPAY_PRIVATE_KEY environment variables. ` +
+      `All monetary amounts are in currency units (e.g. 99.99 for ₴99.99). ` +
+      `Use liqpay_create_checkout_url for PCI-safe payments via hosted page. ` +
+      `Use liqpay_get_payment_status to check payment results. ` +
+      `Use liqpay_verify_callback to validate incoming webhooks.`,
+  },
+);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
