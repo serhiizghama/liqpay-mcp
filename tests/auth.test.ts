@@ -67,7 +67,8 @@ describe("createSignature", () => {
   });
 
   it("matches LiqPay SDK reference vector", () => {
-    // Reference: liqpay/sdk-nodejs uses sha1(private + data + private)
+    // Hardcoded vector: computed via official liqpay/sdk-nodejs
+    // crypto.createHash('sha1').update(private + data + private).digest('base64')
     const privateKey = "a4825234f4bae72a0be04f";
     const payload = {
       public_key: "i000000000",
@@ -82,12 +83,12 @@ describe("createSignature", () => {
     const data = encodeData(payload);
     const signature = createSignature(data, privateKey);
 
-    // Manually verify: signature must be a non-empty base64 string
-    expect(signature).toMatch(/^[A-Za-z0-9+/]+=*$/);
-    expect(signature.length).toBeGreaterThan(20);
-
-    // Same input → same output (deterministic)
-    expect(createSignature(data, privateKey)).toBe(signature);
+    // Pre-computed expected value for this exact payload + key
+    const expectedSignature = createHash("sha1")
+      .update(privateKey + data + privateKey)
+      .digest("base64");
+    expect(signature).toBe(expectedSignature);
+    expect(signature).toBe("KSAhIyrYGmbT50HxtwbcsSCFW5A=");
   });
 
   it("produces different signatures for different private keys", () => {
